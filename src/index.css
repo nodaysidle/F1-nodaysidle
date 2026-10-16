@@ -1,0 +1,69 @@
+@import 'tailwindcss';
+
+@theme {
+  --color-carbon: #0d0e12;
+  --color-carbon-2: #14161c;
+  --color-carbon-3: #1c1f27;
+  --color-line: rgba(255, 255, 255, 0.08);
+  --color-line-strong: rgba(255, 255, 255, 0.16);
+  --color-ink: #e9eaee;
+  --color-ink-dim: #9a9eab;
+  --color-ink-faint: #5d6170;
+  --color-f1: #e10600;
+  --color-amber: #ffb000;
+  --color-cyan: #22d3ee;
+  --font-sans: 'Inter', 'Segoe UI', system-ui, -apple-system, sans-serif;
+  --font-mono: 'JetBrains Mono', 'SF Mono', ui-monospace, 'Cascadia Code', Menlo, monospace;
+}
+
+:root {
+  color-scheme: dark;
+  --glass: #121419;
+}
+
+html,
+body,
+#root {
+  height: 100%;
+}
+
+body {
+  margin: 0;
+  background: var(--color-carbon);
+  color: var(--color-ink);
+  font-family: var(--font-sans);
+  -webkit-font-smoothing: antialiased;
+}
+
+.glass {
+  background: var(--glass);
+  border: 1px solid var(--color-line);
+}
+
+/* Values rewritten every scrub frame get their own compositor layer so the text repaint
+   never invalidates the large chart/map canvases beneath them. */
+.live-layer {
+  will-change: transform;
+  contain: layout paint;
+}
+
+.tabular {
+  font-variant-numeric: tabular-nums;
+}
+
+select.field {
+  appearance: none;
+  background-image: linear-gradient(45deg, transparent 50%, #9a9eab 50%), linear-gradient(135deg, #9a9eab 50%, transparent 50%);
+  background-position:
+    calc(100% - 13px) 50%,
+    calc(100% - 9px) 50%;
+  background-size: 4px 4px;
+  background-repeat: no-repeat;
+}
+
+.u-legend,
+.u-cursor-x,
+.u-cursor-y,
+.u-select {
+  display: none !important;
+}

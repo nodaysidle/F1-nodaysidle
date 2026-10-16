@@ -14,6 +14,7 @@
   <img src="https://img.shields.io/badge/Data-OpenF1%20(real%20sessions)-E10600?style=flat-square" alt="OpenF1">
   <img src="https://img.shields.io/badge/Scrubbing-60%20FPS-22c55e?style=flat-square" alt="60 FPS">
   <img src="https://img.shields.io/badge/telemetry-none-4c8c6b?style=flat-square" alt="No telemetry">
+  <img src="https://img.shields.io/badge/License-MIT-green?style=flat-square" alt="License">
 </p>
 
 ---
@@ -157,6 +158,10 @@ F1-nodaysidle/
 - DRS codes 10/12/14 mean the flap is open; 0/1/8 mean closed or eligible.
 - Integrated lap distance is within ~1% of the official circuit length (Spa: 6957 m vs 7004 m). Comparison laps are stretched to the reference length so corners line up.
 - The final Δt equals the official lap-time gap exactly, because both clocks end at their `lap_duration`.
+
+## License
+
+[MIT](LICENSE) © 2026 nodaysidle
 
 ## Credits
 

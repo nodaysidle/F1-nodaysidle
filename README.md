@@ -25,6 +25,10 @@
 
 ---
 
+<p align="center">
+  <img src="docs/demo.gif" alt="F1 Telemetry Pro live site: scrubbing a 2024 Belgian GP qualifying lap comparison (VER, LEC, NOR, HAM) across the telemetry charts and track delta map, then scrubbing and playing the 2024 Belgian GP race in Session Replay" width="800">
+</p>
+
 ![Lap analysis: VER vs LEC vs NOR vs HAM, 2024 Belgian GP qualifying](docs/screenshots/lap-analysis.png)
 
 ## Features

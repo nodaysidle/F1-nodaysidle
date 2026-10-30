@@ -29,6 +29,12 @@ function Header() {
           F1 Telemetry <span className="text-f1">Pro</span>
         </h1>
       </div>
+      <a
+        href="https://github.com/nodaysidle/F1-nodaysidle"
+        className="text-[11px] text-ink-dim underline-offset-4 hover:text-ink hover:underline focus-visible:text-ink focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-f1"
+      >
+        Source on GitHub
+      </a>
       <nav className="flex rounded-lg border border-line p-0.5" aria-label="View">
         {VIEWS.map((v) => (
           <button

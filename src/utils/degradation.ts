@@ -1,4 +1,5 @@
-import type { Lap, Stint } from '../types/openf1';
+import type { Compound, Lap, RaceControlMessage, Stint } from '../types/openf1';
+import { neutralisedLapNumbers } from './neutralised-laps';
 
 export const MIN_DEGRADATION_LAPS = 5;
 
@@ -66,4 +67,38 @@ export function fitStintDegradation(laps: Lap[], stint: Stint, options: Degradat
   }
   const rSquared = ssTot === 0 ? 1 : 1 - ssRes / ssTot;
   return { status: 'fitted', slope, intercept, rSquared, lapCount: n };
+}
+
+export interface SessionStintDegradation {
+  driverNumber: number;
+  stintNumber: number;
+  compound: Compound | null;
+  lapStart: number | null;
+  lapEnd: number | null;
+  result: DegradationResult;
+}
+
+export function fitSessionDegradation(
+  laps: readonly Lap[],
+  stints: readonly Stint[],
+  messages: readonly RaceControlMessage[],
+): SessionStintDegradation[] {
+  const finalLap = laps.reduce((max, lap) => Math.max(max, lap.lap_number), 0);
+  const excludeLaps = neutralisedLapNumbers(messages, finalLap);
+  const lastStintByDriver = new Map<number, number>();
+  for (const stint of stints) {
+    const current = lastStintByDriver.get(stint.driver_number) ?? 0;
+    if (stint.stint_number > current) lastStintByDriver.set(stint.driver_number, stint.stint_number);
+  }
+  return stints.map((stint) => ({
+    driverNumber: stint.driver_number,
+    stintNumber: stint.stint_number,
+    compound: stint.compound,
+    lapStart: stint.lap_start,
+    lapEnd: stint.lap_end,
+    result: fitStintDegradation(laps as Lap[], stint, {
+      excludeLaps,
+      isLastStint: lastStintByDriver.get(stint.driver_number) === stint.stint_number,
+    }),
+  }));
 }

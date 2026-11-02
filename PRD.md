@@ -9,7 +9,7 @@ Lap times are shown per driver, but the tyre effect (how much slower a set of ty
 For any race in the catalog, show each stint's tyre degradation as a fitted line over its lap times, with the slope in seconds per lap as a label. Everything must come from real OpenF1 data.
 
 ## Scope
-- Races: every race session in `docs/race-catalog-2024-2026.json` where `has_data` is true (67 of 69 as of 2026-11-02). Sprints are excluded. Races with `has_data` false are hidden from the picker, not shown as disabled.
+- Races: every race session in `src/data/race-catalog-2024-2026.json` where `has_data` is true (67 of 69 as of 2026-11-02). Sprints are excluded. Races with `has_data` false are hidden from the picker, not shown as disabled.
 - Data: OpenF1 `/laps` and `/stints` for the session, plus `/race_control` to flag safety-car and VSC laps.
 - Output: overlay on the existing lap-time chart, one line per stint, coloured with `COMPOUND_COLORS`; slope badge per stint.
 

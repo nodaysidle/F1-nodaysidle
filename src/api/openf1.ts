@@ -9,6 +9,7 @@ import type {
   Meeting,
   PitStop,
   PositionSample,
+  RaceControlMessage,
   Session,
   Stint,
 } from '../types/openf1';
@@ -114,6 +115,14 @@ export class OpenF1Client {
     return this.cached<Stint[]>(
       `stints:${session.session_key}:${driverNumber ?? 'all'}`,
       buildUrl('stints', { session_key: session.session_key, driver_number: driverNumber }),
+      this.metadataAge(session.date_end),
+    );
+  }
+
+  raceControl(session: Session): Promise<RaceControlMessage[]> {
+    return this.cached<RaceControlMessage[]>(
+      `race_control:${session.session_key}`,
+      buildUrl('race_control', { session_key: session.session_key }),
       this.metadataAge(session.date_end),
     );
   }

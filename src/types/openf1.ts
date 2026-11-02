@@ -105,3 +105,17 @@ export interface PitStop {
   lap_number: number;
   pit_duration: number | null;
 }
+
+export interface RaceControlMessage {
+  session_key: number;
+  meeting_key: number;
+  date: string;
+  category: string;
+  flag: string | null;
+  lap_number: number | null;
+  driver_number: number | null;
+  message: string;
+  scope: string | null;
+  sector: number | null;
+  qualifying_phase: number | null;
+}

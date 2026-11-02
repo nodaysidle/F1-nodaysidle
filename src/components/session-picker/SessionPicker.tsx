@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { openf1 } from '../../api/openf1';
+import { meetingHasRaceData } from '../../data/race-catalog';
 import { useAsync } from '../../hooks/use-async';
 import { Select } from '../common/Select';
 
@@ -43,7 +44,7 @@ export function SessionPicker({ year, meetingKey, sessionKey, onChange, finished
         label={meetings.loading ? 'Grand Prix · loading' : 'Grand Prix'}
         value={meetingKey}
         disabled={!meetings.data}
-        options={(meetings.data ?? []).map((m) => ({
+        options={(meetings.data ?? []).filter((m) => meetingHasRaceData(m.meeting_key)).map((m) => ({
           value: m.meeting_key,
           label: m.meeting_name,
           disabled: Date.parse(m.date_start) > now,

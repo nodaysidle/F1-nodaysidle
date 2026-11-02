@@ -22,8 +22,8 @@ export function tyreAgeForLap(stint: Stint, lapNumber: number): number | null {
   return stint.tyre_age_at_start + (lapNumber - stint.lap_start);
 }
 
-function cleanStintPoints(laps: Lap[], stint: Stint, options: DegradationOptions): { age: number; time: number }[] {
-  const points: { age: number; time: number }[] = [];
+function cleanStintPoints(laps: readonly Lap[], stint: Stint, options: DegradationOptions): DegradationPoint[] {
+  const points: DegradationPoint[] = [];
   const start = stint.lap_start;
   const end = stint.lap_end;
   if (start === null || end === null) return points;
@@ -41,7 +41,7 @@ function cleanStintPoints(laps: Lap[], stint: Stint, options: DegradationOptions
   return points;
 }
 
-export function fitStintDegradation(laps: Lap[], stint: Stint, options: DegradationOptions = {}): DegradationResult {
+export function fitStintDegradation(laps: readonly Lap[], stint: Stint, options: DegradationOptions = {}): DegradationResult {
   const points = cleanStintPoints(laps, stint, options);
   const n = points.length;
   if (n < MIN_DEGRADATION_LAPS) return { status: 'insufficient', lapCount: n };
@@ -69,12 +69,18 @@ export function fitStintDegradation(laps: Lap[], stint: Stint, options: Degradat
   return { status: 'fitted', slope, intercept, rSquared, lapCount: n };
 }
 
+export interface DegradationPoint {
+  age: number;
+  time: number;
+}
+
 export interface SessionStintDegradation {
   driverNumber: number;
   stintNumber: number;
   compound: Compound | null;
   lapStart: number | null;
   lapEnd: number | null;
+  points: DegradationPoint[];
   result: DegradationResult;
 }
 
@@ -90,15 +96,17 @@ export function fitSessionDegradation(
     const current = lastStintByDriver.get(stint.driver_number) ?? 0;
     if (stint.stint_number > current) lastStintByDriver.set(stint.driver_number, stint.stint_number);
   }
+  const options = (stint: Stint): DegradationOptions => ({
+    excludeLaps,
+    isLastStint: lastStintByDriver.get(stint.driver_number) === stint.stint_number,
+  });
   return stints.map((stint) => ({
     driverNumber: stint.driver_number,
     stintNumber: stint.stint_number,
     compound: stint.compound,
     lapStart: stint.lap_start,
     lapEnd: stint.lap_end,
-    result: fitStintDegradation(laps as Lap[], stint, {
-      excludeLaps,
-      isLastStint: lastStintByDriver.get(stint.driver_number) === stint.stint_number,
-    }),
+    points: cleanStintPoints(laps, stint, options(stint)),
+    result: fitStintDegradation(laps, stint, options(stint)),
   }));
 }

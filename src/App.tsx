@@ -1,3 +1,4 @@
+import { DegradationPanel } from './components/degradation/DegradationPanel';
 import { DriverMatrix } from './components/driver-matrix/DriverMatrix';
 import { LapScrubber } from './components/charts/LapScrubber';
 import { TelemetryCharts } from './components/charts/TelemetryCharts';
@@ -144,6 +145,9 @@ function AnalysisView() {
             <TrackMap />
           </div>
           <Legend />
+        </Panel>
+        <Panel title="Tyre Degradation" className="h-[340px] shrink-0" bodyClassName="flex flex-col">
+          <DegradationPanel />
         </Panel>
         <Panel title="HUD" className="shrink-0">
           <Hud />

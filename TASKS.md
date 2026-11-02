@@ -23,15 +23,18 @@ Each task ends with its proof. A task is DONE only when its proof is shown.
 - [x] Loader hook `src/hooks/use-session-degradation.ts`.
 - Proof: `npm run test:live` (4 tests in `degradation.live.test.ts` plus existing OpenF1 live test). Fits: 2024 Bahrain 62/63 stints, 2025 Bahrain 59/62, 2026 Mexico City 51/80. Hook is not yet rendered (T5).
 
-## T5 — Overlay rendering
-- [ ] Draw one fitted line per stint on the lap-time uPlot chart, coloured with `COMPOUND_COLORS`.
-- [ ] Show slope (s/lap) and R² on each stint; show the fuel-correction assumption in the legend.
-- Proof: screenshot of a real race.
+## T5 — Overlay rendering (DONE)
+- [x] Finding: there is no lap-time chart in the app. The PRD's "existing lap-time chart" does not exist; the existing uPlot chart is per-lap telemetry by distance. Built a new panel instead: `Tyre Degradation`, under the Track Map.
+- [x] Plot: tyre age (x) vs lap time (y), a points series per stint coloured by `COMPOUND_COLORS`, and a dashed fitted line per fitted stint. Series builder: `src/components/degradation/degradation-plot.ts` (tested).
+- [x] Stint list below the chart: slope (s/lap), R², laps used, or "insufficient data". Footer states that slopes include fuel burn and SC/VSC laps are excluded.
+- [x] Race sessions only. Non-race sessions show a message instead.
+- Proof: `docs/screenshots/tyre-degradation-2024-bahrain.png` (2024 Bahrain race, VER/LEC/NOR/HAM). Fits in the panel match the live test counts.
+- Bug found and fixed during the browser check: a zustand selector built a new array on each render, which looped React forever and left the app blank.
 
-## T6 — Verification gate
-- [ ] `npm test`, `npm run build`, `npm run lint` all exit 0.
-- [ ] Live check output recorded.
-- [ ] Screenshot saved under `docs/screenshots/`.
+## T6 — Verification gate (DONE)
+- [x] `npm run lint` exit 0; `npx vitest run` 83 of 83; `npm run build` exit 0.
+- [x] `npx vitest run --config vitest.live.config.ts` 5 of 5 against real OpenF1 data.
+- [x] Screenshot saved: `docs/screenshots/tyre-degradation-2024-bahrain.png`.
 
 ## Decisions (2026-11-02)
 - No fuel correction. Slopes include fuel burn; the UI states this.

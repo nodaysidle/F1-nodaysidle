@@ -14,6 +14,27 @@ export interface DegradationPlot {
   series: PlotSeries[];
 }
 
+export type CompoundFilter = 'ALL' | 'SOFT' | 'MEDIUM' | 'HARD';
+
+export const COMPOUND_FILTERS: readonly CompoundFilter[] = ['ALL', 'SOFT', 'MEDIUM', 'HARD'] as const;
+
+export function filterStintsByCompound(
+  stints: readonly SessionStintDegradation[],
+  filter: CompoundFilter,
+): SessionStintDegradation[] {
+  if (filter === 'ALL') return [...stints];
+  return stints.filter((s) => s.compound === filter);
+}
+
+export function visibleStints(
+  stints: readonly SessionStintDegradation[],
+  driverNumbers: ReadonlySet<number>,
+  filter: CompoundFilter,
+): SessionStintDegradation[] {
+  const selected = stints.filter((s) => driverNumbers.has(s.driverNumber) && s.points.length > 0);
+  return filterStintsByCompound(selected, filter);
+}
+
 const FALLBACK_COLOR = '#9CA3AF';
 
 /**

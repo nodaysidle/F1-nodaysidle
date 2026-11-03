@@ -1,10 +1,17 @@
-import { useEffect, useMemo, useRef, type ReactNode } from 'react';
+import { useEffect, useMemo, useRef, useState, type ReactNode } from 'react';
 import uPlot from 'uplot';
 import { openf1 } from '../../api/openf1';
 import { useAsync } from '../../hooks/use-async';
 import { useSessionDegradation } from '../../hooks/use-session-degradation';
 import { useSlotStore } from '../../store/slots';
-import { buildDegradationPlot, type DegradationPlot } from './degradation-plot';
+import { COMPOUND_COLORS } from '../../utils/colors';
+import {
+  buildDegradationPlot,
+  COMPOUND_FILTERS,
+  type CompoundFilter,
+  type DegradationPlot,
+  visibleStints,
+} from './degradation-plot';
 
 const AXIS_STYLE = {
   stroke: '#5D6170',
@@ -57,6 +64,7 @@ function DegradationChartCanvas({ plot }: { plot: DegradationPlot }) {
 }
 
 export function DegradationPanel() {
+  const [compound, setCompound] = useState<CompoundFilter>('ALL');
   const sessionKey = useSlotStore((s) => s.slots[0]?.sessionKey ?? null);
   const slots = useSlotStore((s) => s.slots);
   const session = useAsync(sessionKey === null ? null : () => openf1.session(sessionKey), [sessionKey]);
@@ -75,8 +83,18 @@ export function DegradationPanel() {
     [drivers.data],
   );
   const stints = useMemo(() => degradation.data ?? [], [degradation.data]);
-  const plot = useMemo(() => buildDegradationPlot(stints, driverLabels, driverNumbers), [stints, driverLabels, driverNumbers]);
-  const selectedStints = stints.filter((s) => driverNumbers.has(s.driverNumber));
+  const allStints = useMemo(
+    () => visibleStints(stints, driverNumbers, 'ALL'),
+    [stints, driverNumbers],
+  );
+  const selectedStints = useMemo(
+    () => visibleStints(stints, driverNumbers, compound),
+    [stints, driverNumbers, compound],
+  );
+  const plot = useMemo(
+    () => buildDegradationPlot(selectedStints, driverLabels, driverNumbers),
+    [selectedStints, driverLabels, driverNumbers],
+  );
 
   if (sessionKey === null) return <Message>Pick a race in slot 1 to see tyre degradation.</Message>;
   if (session.error) return <Message tone="error">{session.error}</Message>;
@@ -85,12 +103,53 @@ export function DegradationPanel() {
   }
   if (degradation.error) return <Message tone="error">{degradation.error}</Message>;
   if (degradation.loading || session.loading) return <Message>Loading stints and laps…</Message>;
-  if (selectedStints.length === 0) return <Message>No stints for the selected drivers.</Message>;
+  if (allStints.length === 0) return <Message>No stints for the selected drivers.</Message>;
 
   return (
     <div className="flex h-full min-h-0 flex-col">
+      <div className="flex items-center gap-1.5 border-b border-line px-3 py-1.5">
+        {COMPOUND_FILTERS.map((filter) => {
+          const isActive = compound === filter;
+          const color = filter === 'ALL' ? null : COMPOUND_COLORS[filter];
+          return (
+            <button
+              key={filter}
+              type="button"
+              aria-pressed={isActive}
+              onClick={() => {
+                setCompound(filter);
+              }}
+              className={`flex items-center gap-1.5 rounded-full border px-2 py-0.5 font-mono text-[10px] uppercase transition-colors ${
+                isActive
+                  ? filter === 'ALL'
+                    ? 'border-ink text-ink'
+                    : ''
+                  : 'border-line text-ink-dim hover:border-line-strong hover:text-ink'
+              }`}
+              style={
+                isActive && color
+                  ? { borderColor: color, color }
+                  : undefined
+              }
+            >
+              {color && (
+                <span
+                  aria-hidden="true"
+                  className="size-1.5 shrink-0 rounded-full"
+                  style={{ backgroundColor: color }}
+                />
+              )}
+              {filter}
+            </button>
+          );
+        })}
+      </div>
       <div className="min-h-[180px] flex-1 px-1 pt-2">
-        <DegradationChartCanvas plot={plot} />
+        {selectedStints.length === 0 ? (
+          <Message>No {compound} stints for the selected drivers.</Message>
+        ) : (
+          <DegradationChartCanvas plot={plot} />
+        )}
       </div>
       <ul className="max-h-[120px] shrink-0 space-y-0.5 overflow-y-auto border-t border-line px-3 py-2 font-mono text-[10px] text-ink-dim">
         {selectedStints.map((s) => (

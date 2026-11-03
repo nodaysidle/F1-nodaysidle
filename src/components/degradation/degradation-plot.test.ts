@@ -1,6 +1,11 @@
 import { describe, expect, it } from 'vitest';
+import { COMPOUND_COLORS } from '../../utils/colors';
 import type { DegradationPoint, SessionStintDegradation } from '../../utils/degradation';
-import { buildDegradationPlot } from './degradation-plot';
+import {
+  buildDegradationPlot,
+  filterStintsByCompound,
+  visibleStints,
+} from './degradation-plot';
 
 function stint(overrides: Partial<SessionStintDegradation> & { points: DegradationPoint[] }): SessionStintDegradation {
   return {
@@ -75,5 +80,71 @@ describe('buildDegradationPlot', () => {
     const fits = [stint({ driverNumber: 44, compound: null, points: [{ age: 1, time: 80 }] })];
     const plot = buildDegradationPlot(fits, labels, new Set([44]));
     expect(plot.series[0]).toMatchObject({ label: '#44 S1', color: '#9CA3AF' });
+  });
+});
+
+describe('compound filtering and visible stints', () => {
+  it('drops stints with 0 points from visibleStints and from buildDegradationPlot series', () => {
+    const stints = [
+      stint({ driverNumber: 1, stintNumber: 1, points: [] }),
+      stint({ driverNumber: 1, stintNumber: 2, points: [{ age: 1, time: 80 }] }),
+    ];
+    const visible = visibleStints(stints, new Set([1]), 'ALL');
+    expect(visible).toHaveLength(1);
+    expect(visible[0].stintNumber).toBe(2);
+
+    const plot = buildDegradationPlot(stints, labels, new Set([1]));
+    expect(plot.series).toHaveLength(1);
+    expect(plot.series[0].label).toContain('S2');
+  });
+
+  it('filterStintsByCompound returns only matching stints for specific compounds and everything for ALL', () => {
+    const allStints = [
+      stint({ stintNumber: 1, compound: 'SOFT', points: [{ age: 1, time: 80 }] }),
+      stint({ stintNumber: 2, compound: 'MEDIUM', points: [{ age: 1, time: 80 }] }),
+      stint({ stintNumber: 3, compound: 'HARD', points: [{ age: 1, time: 80 }] }),
+      stint({ stintNumber: 4, compound: 'INTERMEDIATE', points: [{ age: 1, time: 80 }] }),
+      stint({ stintNumber: 5, compound: 'WET', points: [{ age: 1, time: 80 }] }),
+      stint({ stintNumber: 6, compound: null, points: [{ age: 1, time: 80 }] }),
+    ];
+
+    expect(filterStintsByCompound(allStints, 'SOFT').map((s) => s.stintNumber)).toEqual([1]);
+    expect(filterStintsByCompound(allStints, 'MEDIUM').map((s) => s.stintNumber)).toEqual([2]);
+    expect(filterStintsByCompound(allStints, 'HARD').map((s) => s.stintNumber)).toEqual([3]);
+
+    const allResult = filterStintsByCompound(allStints, 'ALL');
+    expect(allResult.map((s) => s.stintNumber)).toEqual([1, 2, 3, 4, 5, 6]);
+  });
+
+  it('visibleStints combines driver selection, zero-point exclusion, and compound filter', () => {
+    const stints = [
+      stint({ driverNumber: 1, stintNumber: 1, compound: 'SOFT', points: [{ age: 1, time: 80 }] }),
+      stint({ driverNumber: 1, stintNumber: 2, compound: 'HARD', points: [{ age: 1, time: 81 }] }),
+      stint({ driverNumber: 16, stintNumber: 1, compound: 'SOFT', points: [{ age: 1, time: 80.5 }] }),
+      stint({ driverNumber: 16, stintNumber: 2, compound: 'SOFT', points: [] }),
+      stint({ driverNumber: 44, stintNumber: 1, compound: 'SOFT', points: [{ age: 1, time: 82 }] }),
+    ];
+
+    const visible = visibleStints(stints, new Set([1, 16]), 'SOFT');
+    expect(visible.map((s) => `${s.driverNumber}-S${s.stintNumber}`)).toEqual(['1-S1', '16-S1']);
+  });
+
+  it('buildDegradationPlot over filtered stints yields series colors equal to COMPOUND_COLORS and no other compounds', () => {
+    const stints = [
+      stint({ driverNumber: 1, stintNumber: 1, compound: 'SOFT', points: [{ age: 1, time: 80 }] }),
+      stint({ driverNumber: 1, stintNumber: 2, compound: 'MEDIUM', points: [{ age: 1, time: 81 }] }),
+      stint({ driverNumber: 1, stintNumber: 3, compound: 'HARD', points: [{ age: 1, time: 82 }] }),
+    ];
+
+    const softStints = visibleStints(stints, new Set([1]), 'SOFT');
+    const plot = buildDegradationPlot(softStints, labels, new Set([1]));
+
+    expect(plot.series.length).toBeGreaterThan(0);
+    for (const s of plot.series) {
+      expect(s.color).toBe(COMPOUND_COLORS.SOFT);
+      expect(s.color).not.toBe(COMPOUND_COLORS.MEDIUM);
+      expect(s.color).not.toBe(COMPOUND_COLORS.HARD);
+    }
+    expect(plot.series.some((s) => s.label.includes('MEDIUM') || s.label.includes('HARD'))).toBe(false);
   });
 });
